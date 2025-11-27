@@ -56,7 +56,7 @@ fun AgendaApp() {
                 TopAppBar(
                     title = {
                         Text(
-                            "Mi Agenda",
+                            "Mi Añenda",
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp
                         )
