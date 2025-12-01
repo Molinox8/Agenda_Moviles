@@ -8,7 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.agenda_kotlin.model.Prioridad
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -16,11 +18,12 @@ import java.util.*
 @Composable
 fun DialogAgregarTarea(
     onDismiss: () -> Unit,
-    onAgregar: (String, String, Long?) -> Unit
+    onAgregar: (String, String, Long?, Prioridad) -> Unit
 ) {
     var titulo by remember { mutableStateOf("") }
     var descripcion by remember { mutableStateOf("") }
     var fechaSeleccionada by remember { mutableStateOf<Long?>(null) }
+    var prioridadSeleccionada by remember { mutableStateOf(Prioridad.MEDIA) }
     var mostrarDatePicker by remember { mutableStateOf(false) }
     
     val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -113,16 +116,46 @@ fun DialogAgregarTarea(
                         Text("Quitar fecha")
                     }
                 }
+                
+                // Selector de prioridad
+                Column {
+                    Text(
+                        text = "Prioridad",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        PrioridadChip(
+                            prioridad = Prioridad.BAJA,
+                            seleccionada = prioridadSeleccionada == Prioridad.BAJA,
+                            onClick = { prioridadSeleccionada = Prioridad.BAJA }
+                        )
+                        PrioridadChip(
+                            prioridad = Prioridad.MEDIA,
+                            seleccionada = prioridadSeleccionada == Prioridad.MEDIA,
+                            onClick = { prioridadSeleccionada = Prioridad.MEDIA }
+                        )
+                        PrioridadChip(
+                            prioridad = Prioridad.ALTA,
+                            seleccionada = prioridadSeleccionada == Prioridad.ALTA,
+                            onClick = { prioridadSeleccionada = Prioridad.ALTA }
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
             Button(
                 onClick = {
                     if (titulo.isNotBlank()) {
-                        onAgregar(titulo, descripcion, fechaSeleccionada)
+                        onAgregar(titulo, descripcion, fechaSeleccionada, prioridadSeleccionada)
                         titulo = ""
                         descripcion = ""
                         fechaSeleccionada = null
+                        prioridadSeleccionada = Prioridad.MEDIA
                     }
                 },
                 enabled = titulo.isNotBlank()
@@ -176,5 +209,29 @@ fun CustomDatePickerDialog(
     ) {
         DatePicker(state = datePickerState)
     }
+}
+
+@Composable
+fun PrioridadChip(
+    prioridad: Prioridad,
+    seleccionada: Boolean,
+    onClick: () -> Unit
+) {
+    val (texto, color) = when (prioridad) {
+        Prioridad.BAJA -> "Baja" to Color(0xFF4CAF50) // Verde
+        Prioridad.MEDIA -> "Media" to Color(0xFFFF9800) // Naranja
+        Prioridad.ALTA -> "Alta" to Color(0xFFF44336) // Rojo
+    }
+    
+    FilterChip(
+        selected = seleccionada,
+        onClick = onClick,
+        label = { Text(texto) },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = color.copy(alpha = 0.2f),
+            selectedLabelColor = color,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    )
 }
 

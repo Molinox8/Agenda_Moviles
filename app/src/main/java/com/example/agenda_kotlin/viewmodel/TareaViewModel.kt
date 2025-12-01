@@ -2,6 +2,7 @@ package com.example.agenda_kotlin.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.agenda_kotlin.model.Prioridad
 import com.example.agenda_kotlin.model.Tarea
 import com.example.agenda_kotlin.repository.TareaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,13 +33,14 @@ class TareaViewModel(
         }
     }
     
-    fun agregarTarea(titulo: String, descripcion: String, fechaProgramada: Long? = null) {
+    fun agregarTarea(titulo: String, descripcion: String, fechaProgramada: Long? = null, prioridad: Prioridad = Prioridad.MEDIA) {
         if (titulo.isNotBlank()) {
             viewModelScope.launch {
                 val nuevaTarea = Tarea(
                     titulo = titulo,
                     descripcion = descripcion,
-                    fechaProgramada = fechaProgramada
+                    fechaProgramada = fechaProgramada,
+                    prioridad = prioridad
                 )
                 repository.agregarTarea(nuevaTarea)
                 cargarTareas()
