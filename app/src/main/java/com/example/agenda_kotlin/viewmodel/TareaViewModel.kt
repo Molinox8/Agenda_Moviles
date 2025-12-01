@@ -32,12 +32,13 @@ class TareaViewModel(
         }
     }
     
-    fun agregarTarea(titulo: String, descripcion: String) {
+    fun agregarTarea(titulo: String, descripcion: String, fechaProgramada: Long? = null) {
         if (titulo.isNotBlank()) {
             viewModelScope.launch {
                 val nuevaTarea = Tarea(
                     titulo = titulo,
-                    descripcion = descripcion
+                    descripcion = descripcion,
+                    fechaProgramada = fechaProgramada
                 )
                 repository.agregarTarea(nuevaTarea)
                 cargarTareas()

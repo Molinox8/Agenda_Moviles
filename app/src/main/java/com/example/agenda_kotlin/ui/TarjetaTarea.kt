@@ -71,10 +71,19 @@ fun TarjetaTarea(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = formatoFecha.format(Date(tarea.fecha)),
+                    text = "Creada: ${formatoFecha.format(Date(tarea.fecha))}",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
+                if (tarea.fechaProgramada != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "📅 Programada: ${formatoFecha.format(Date(tarea.fechaProgramada))}",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             Row(
