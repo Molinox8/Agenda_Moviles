@@ -7,6 +7,7 @@ data class Tarea(
     val titulo: String,
     val descripcion: String,
     val fecha: Long = System.currentTimeMillis(),
+    val fechaProgramada: Long? = null, // Fecha programada para realizar la tarea
     var completada: Boolean = false
 )
 

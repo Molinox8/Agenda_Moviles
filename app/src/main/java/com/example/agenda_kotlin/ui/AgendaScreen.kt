@@ -90,8 +90,8 @@ fun AgendaScreen(
             if (uiState.mostrarDialog) {
                 DialogAgregarTarea(
                     onDismiss = { viewModel.ocultarDialog() },
-                    onAgregar = { titulo, descripcion ->
-                        viewModel.agregarTarea(titulo, descripcion)
+                    onAgregar = { titulo, descripcion, fechaProgramada ->
+                        viewModel.agregarTarea(titulo, descripcion, fechaProgramada)
                         viewModel.ocultarDialog()
                     }
                 )
