@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 data class TareaUiState(
     val tareas: List<Tarea> = emptyList(),
     val mostrarDialog: Boolean = false,
+    val tareaEditando: Tarea? = null, // Tarea que se está editando
     val tipoOrdenamiento: TipoOrdenamiento = TipoOrdenamiento.PRIORIDAD_ALTA_PRIMERO
 )
 
@@ -121,6 +122,39 @@ class TareaViewModel(
     
     fun ocultarDialog() {
         _uiState.value = _uiState.value.copy(mostrarDialog = false)
+    }
+    
+    fun mostrarDialogEdicion(tarea: Tarea) {
+        _uiState.value = _uiState.value.copy(tareaEditando = tarea)
+    }
+    
+    fun ocultarDialogEdicion() {
+        _uiState.value = _uiState.value.copy(tareaEditando = null)
+    }
+    
+    fun editarTarea(
+        id: String,
+        titulo: String,
+        descripcion: String,
+        fechaProgramada: Long?,
+        prioridad: Prioridad
+    ) {
+        if (titulo.isNotBlank()) {
+            viewModelScope.launch {
+                val tareaExistente = repository.obtenerTodasLasTareas().find { it.id == id }
+                if (tareaExistente != null) {
+                    val tareaActualizada = tareaExistente.copy(
+                        titulo = titulo,
+                        descripcion = descripcion,
+                        fechaProgramada = fechaProgramada,
+                        prioridad = prioridad
+                    )
+                    repository.actualizarTarea(tareaActualizada)
+                    cargarTareas()
+                }
+                ocultarDialogEdicion()
+            }
+        }
     }
 }
 

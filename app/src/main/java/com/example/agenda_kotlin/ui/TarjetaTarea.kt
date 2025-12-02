@@ -6,6 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import java.util.*
 fun TarjetaTarea(
     tarea: Tarea,
     onCompletarClick: () -> Unit,
+    onEditarClick: () -> Unit,
     onEliminarClick: () -> Unit
 ) {
     val formatoFecha = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
@@ -123,6 +125,19 @@ fun TarjetaTarea(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                IconButton(
+                    onClick = onEditarClick,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color(0xFFE3F2FD)
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.Edit,
+                        "Editar",
+                        tint = Color(0xFF1976D2)
+                    )
+                }
+                
                 IconButton(
                     onClick = onCompletarClick,
                     colors = IconButtonDefaults.iconButtonColors(

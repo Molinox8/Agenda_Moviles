@@ -132,6 +132,9 @@ fun AgendaScreen(
                                     onCompletarClick = {
                                         viewModel.toggleCompletada(tarea.id)
                                     },
+                                    onEditarClick = {
+                                        viewModel.mostrarDialogEdicion(tarea)
+                                    },
                                     onEliminarClick = {
                                         viewModel.eliminarTarea(tarea.id)
                                     }
@@ -148,6 +151,23 @@ fun AgendaScreen(
                     onAgregar = { titulo, descripcion, fechaProgramada, prioridad ->
                         viewModel.agregarTarea(titulo, descripcion, fechaProgramada, prioridad)
                         viewModel.ocultarDialog()
+                    }
+                )
+            }
+            
+            // Diálogo de edición
+            uiState.tareaEditando?.let { tarea ->
+                DialogEditarTarea(
+                    tarea = tarea,
+                    onDismiss = { viewModel.ocultarDialogEdicion() },
+                    onGuardar = { titulo, descripcion, fechaProgramada, prioridad ->
+                        viewModel.editarTarea(
+                            id = tarea.id,
+                            titulo = titulo,
+                            descripcion = descripcion,
+                            fechaProgramada = fechaProgramada,
+                            prioridad = prioridad
+                        )
                     }
                 )
             }
