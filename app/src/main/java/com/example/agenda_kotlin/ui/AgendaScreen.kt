@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.agenda_kotlin.model.TipoOrdenamiento
 import com.example.agenda_kotlin.viewmodel.TareaViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,6 +25,7 @@ fun AgendaScreen(
     viewModel: TareaViewModel
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var mostrarMenuOrdenamiento by remember { mutableStateOf(false) }
 
     MaterialTheme {
         Scaffold(
@@ -37,7 +40,39 @@ fun AgendaScreen(
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
+                    ),
+                    actions = {
+                        Box {
+                            IconButton(onClick = { mostrarMenuOrdenamiento = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.Sort,
+                                    contentDescription = "Ordenar tareas"
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = mostrarMenuOrdenamiento,
+                                onDismissRequest = { mostrarMenuOrdenamiento = false }
+                            ) {
+                                TipoOrdenamiento.values().forEach { tipo ->
+                                    DropdownMenuItem(
+                                        text = { Text(tipo.displayName) },
+                                        onClick = {
+                                            viewModel.cambiarOrdenamiento(tipo)
+                                            mostrarMenuOrdenamiento = false
+                                        },
+                                        leadingIcon = {
+                                            if (uiState.tipoOrdenamiento == tipo) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Sort,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
                 )
             },
             floatingActionButton = {
@@ -67,21 +102,41 @@ fun AgendaScreen(
                         )
                     }
                 } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(uiState.tareas, key = { it.id }) { tarea ->
-                            TarjetaTarea(
-                                tarea = tarea,
-                                onCompletarClick = {
-                                    viewModel.toggleCompletada(tarea.id)
-                                },
-                                onEliminarClick = {
-                                    viewModel.eliminarTarea(tarea.id)
-                                }
-                            )
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Indicador de ordenamiento actual
+                        if (uiState.tareas.isNotEmpty()) {
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = MaterialTheme.shapes.small
+                            ) {
+                                Text(
+                                    text = "Ordenado por: ${uiState.tipoOrdenamiento.displayName}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(uiState.tareas, key = { it.id }) { tarea ->
+                                TarjetaTarea(
+                                    tarea = tarea,
+                                    onCompletarClick = {
+                                        viewModel.toggleCompletada(tarea.id)
+                                    },
+                                    onEliminarClick = {
+                                        viewModel.eliminarTarea(tarea.id)
+                                    }
+                                )
+                            }
                         }
                     }
                 }
