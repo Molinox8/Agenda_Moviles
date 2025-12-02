@@ -8,7 +8,8 @@ import com.example.agenda_kotlin.model.TipoOrdenamiento
 import com.example.agenda_kotlin.repository.TareaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class TareaUiState(
@@ -19,31 +20,40 @@ data class TareaUiState(
 )
 
 class TareaViewModel(
-    private val repository: TareaRepository = TareaRepository()
+    private val repository: TareaRepository
 ) : ViewModel() {
     
-    private val _uiState = MutableStateFlow(TareaUiState())
-    val uiState: StateFlow<TareaUiState> = _uiState.asStateFlow()
+    private val _tipoOrdenamiento = MutableStateFlow(TipoOrdenamiento.PRIORIDAD_ALTA_PRIMERO)
+    private val _mostrarDialog = MutableStateFlow(false)
+    private val _tareaEditando = MutableStateFlow<Tarea?>(null)
     
-    init {
-        cargarTareas()
+    val tareasFlow = combine(
+        repository.obtenerTodasLasTareas(),
+        _tipoOrdenamiento
+    ) { tareas, ordenamiento ->
+        ordenarTareas(tareas, ordenamiento)
     }
     
-    private fun cargarTareas() {
-        viewModelScope.launch {
-            val tareas = repository.obtenerTodasLasTareas()
-            val tareasOrdenadas = ordenarTareas(tareas, _uiState.value.tipoOrdenamiento)
-            _uiState.value = _uiState.value.copy(tareas = tareasOrdenadas)
-        }
-    }
+    val uiState: StateFlow<TareaUiState> = combine(
+        tareasFlow,
+        _mostrarDialog,
+        _tareaEditando,
+        _tipoOrdenamiento
+    ) { tareas, mostrarDialog, tareaEditando, tipoOrdenamiento ->
+        TareaUiState(
+            tareas = tareas,
+            mostrarDialog = mostrarDialog,
+            tareaEditando = tareaEditando,
+            tipoOrdenamiento = tipoOrdenamiento
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = kotlinx.coroutines.flow.SharingStarted.WhileSubscribed(5000),
+        initialValue = TareaUiState()
+    )
     
     fun cambiarOrdenamiento(tipoOrdenamiento: TipoOrdenamiento) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(tipoOrdenamiento = tipoOrdenamiento)
-            val tareas = repository.obtenerTodasLasTareas()
-            val tareasOrdenadas = ordenarTareas(tareas, tipoOrdenamiento)
-            _uiState.value = _uiState.value.copy(tareas = tareasOrdenadas)
-        }
+        _tipoOrdenamiento.value = tipoOrdenamiento
     }
     
     private fun ordenarTareas(tareas: List<Tarea>, tipoOrdenamiento: TipoOrdenamiento): List<Tarea> {
@@ -97,7 +107,6 @@ class TareaViewModel(
                     prioridad = prioridad
                 )
                 repository.agregarTarea(nuevaTarea)
-                cargarTareas()
             }
         }
     }
@@ -105,31 +114,29 @@ class TareaViewModel(
     fun toggleCompletada(id: String) {
         viewModelScope.launch {
             repository.toggleCompletada(id)
-            cargarTareas()
         }
     }
     
     fun eliminarTarea(id: String) {
         viewModelScope.launch {
             repository.eliminarTarea(id)
-            cargarTareas()
         }
     }
     
     fun mostrarDialog() {
-        _uiState.value = _uiState.value.copy(mostrarDialog = true)
+        _mostrarDialog.value = true
     }
     
     fun ocultarDialog() {
-        _uiState.value = _uiState.value.copy(mostrarDialog = false)
+        _mostrarDialog.value = false
     }
     
     fun mostrarDialogEdicion(tarea: Tarea) {
-        _uiState.value = _uiState.value.copy(tareaEditando = tarea)
+        _tareaEditando.value = tarea
     }
     
     fun ocultarDialogEdicion() {
-        _uiState.value = _uiState.value.copy(tareaEditando = null)
+        _tareaEditando.value = null
     }
     
     fun editarTarea(
@@ -141,17 +148,16 @@ class TareaViewModel(
     ) {
         if (titulo.isNotBlank()) {
             viewModelScope.launch {
-                val tareaExistente = repository.obtenerTodasLasTareas().find { it.id == id }
-                if (tareaExistente != null) {
-                    val tareaActualizada = tareaExistente.copy(
-                        titulo = titulo,
-                        descripcion = descripcion,
-                        fechaProgramada = fechaProgramada,
-                        prioridad = prioridad
-                    )
-                    repository.actualizarTarea(tareaActualizada)
-                    cargarTareas()
-                }
+                val tareaActualizada = Tarea(
+                    id = id,
+                    titulo = titulo,
+                    descripcion = descripcion,
+                    fechaProgramada = fechaProgramada,
+                    prioridad = prioridad,
+                    completada = _tareaEditando.value?.completada ?: false,
+                    fecha = _tareaEditando.value?.fecha ?: System.currentTimeMillis()
+                )
+                repository.actualizarTarea(tareaActualizada)
                 ocultarDialogEdicion()
             }
         }
