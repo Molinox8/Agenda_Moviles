@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +27,16 @@ fun AgendaScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var mostrarMenuOrdenamiento by remember { mutableStateOf(false) }
+    var mostrarCalendario by remember { mutableStateOf(false) }
+
+    // Si se muestra el calendario, mostrar esa pantalla
+    if (mostrarCalendario) {
+        CalendarioScreen(
+            viewModel = viewModel,
+            onBack = { mostrarCalendario = false }
+        )
+        return
+    }
 
     MaterialTheme {
         Scaffold(
@@ -42,6 +53,15 @@ fun AgendaScreen(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     ),
                     actions = {
+                        // Botón para ver calendario
+                        IconButton(onClick = { mostrarCalendario = true }) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarToday,
+                                contentDescription = "Ver calendario"
+                            )
+                        }
+                        
+                        // Botón de ordenamiento
                         Box {
                             IconButton(onClick = { mostrarMenuOrdenamiento = true }) {
                                 Icon(
