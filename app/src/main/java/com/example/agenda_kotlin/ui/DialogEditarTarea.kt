@@ -11,19 +11,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.agenda_kotlin.model.Prioridad
+import com.example.agenda_kotlin.model.Tarea
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DialogAgregarTarea(
+fun DialogEditarTarea(
+    tarea: Tarea,
     onDismiss: () -> Unit,
-    onAgregar: (String, String, Long?, Prioridad) -> Unit
+    onGuardar: (String, String, Long?, Prioridad) -> Unit
 ) {
-    var titulo by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var fechaSeleccionada by remember { mutableStateOf<Long?>(null) }
-    var prioridadSeleccionada by remember { mutableStateOf(Prioridad.MEDIA) }
+    var titulo by remember { mutableStateOf(tarea.titulo) }
+    var descripcion by remember { mutableStateOf(tarea.descripcion) }
+    var fechaSeleccionada by remember { mutableStateOf<Long?>(tarea.fechaProgramada) }
+    var prioridadSeleccionada by remember { mutableStateOf(tarea.prioridad) }
     var mostrarDatePicker by remember { mutableStateOf(false) }
     
     val formatoFecha = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -42,7 +44,7 @@ fun DialogAgregarTarea(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nueva Tarea") },
+        title = { Text("Editar Tarea") },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -151,16 +153,12 @@ fun DialogAgregarTarea(
             Button(
                 onClick = {
                     if (titulo.isNotBlank()) {
-                        onAgregar(titulo, descripcion, fechaSeleccionada, prioridadSeleccionada)
-                        titulo = ""
-                        descripcion = ""
-                        fechaSeleccionada = null
-                        prioridadSeleccionada = Prioridad.MEDIA
+                        onGuardar(titulo, descripcion, fechaSeleccionada, prioridadSeleccionada)
                     }
                 },
                 enabled = titulo.isNotBlank()
             ) {
-                Text("Agregar")
+                Text("Guardar")
             }
         },
         dismissButton = {
@@ -182,5 +180,4 @@ fun DialogAgregarTarea(
         )
     }
 }
-
 
