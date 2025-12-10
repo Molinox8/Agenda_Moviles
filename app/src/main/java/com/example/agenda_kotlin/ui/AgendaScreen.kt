@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,15 +19,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.agenda_kotlin.model.TipoOrdenamiento
+import com.example.agenda_kotlin.ui.ThemeOption
 import com.example.agenda_kotlin.viewmodel.TareaViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AgendaScreen(
-    viewModel: TareaViewModel
+    viewModel: TareaViewModel,
+    themeOption: ThemeOption,
+    onThemeChange: (ThemeOption) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var mostrarMenuOrdenamiento by remember { mutableStateOf(false) }
+    var mostrarMenuTema by remember { mutableStateOf(false) }
     var mostrarCalendario by remember { mutableStateOf(false) }
 
     // Si se muestra el calendario, mostrar esa pantalla
@@ -53,6 +58,41 @@ fun AgendaScreen(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     ),
                     actions = {
+                        // Botón para tema de colores
+                        Box {
+                            IconButton(onClick = {
+                                mostrarMenuTema = true
+                                mostrarMenuOrdenamiento = false
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Palette,
+                                    contentDescription = "Cambiar tema"
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = mostrarMenuTema,
+                                onDismissRequest = { mostrarMenuTema = false }
+                            ) {
+                                ThemeOption.entries.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option.displayName) },
+                                        onClick = {
+                                            onThemeChange(option)
+                                            mostrarMenuTema = false
+                                        },
+                                        leadingIcon = {
+                                            if (themeOption == option) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Palette,
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
                         // Botón para ver calendario
                         IconButton(onClick = { mostrarCalendario = true }) {
                             Icon(

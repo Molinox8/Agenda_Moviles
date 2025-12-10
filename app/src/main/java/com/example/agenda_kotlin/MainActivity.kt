@@ -4,9 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import com.example.agenda_kotlin.data.TareaDatabase
 import com.example.agenda_kotlin.repository.TareaRepository
 import com.example.agenda_kotlin.ui.AgendaScreen
+import com.example.agenda_kotlin.ui.AppTheme
+import com.example.agenda_kotlin.ui.ThemeOption
 import com.example.agenda_kotlin.viewmodel.TareaViewModel
 
 class MainActivity : ComponentActivity() {
@@ -26,7 +32,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             )
-            AgendaScreen(viewModel = viewModel)
+            var themeOption by rememberSaveable(stateSaver = ThemeOption.saver) {
+                mutableStateOf(ThemeOption.AZUL)
+            }
+
+            AppTheme(themeOption = themeOption) {
+                AgendaScreen(
+                    viewModel = viewModel,
+                    themeOption = themeOption,
+                    onThemeChange = { themeOption = it }
+                )
+            }
         }
     }
 }
