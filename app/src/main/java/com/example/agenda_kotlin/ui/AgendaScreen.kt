@@ -7,7 +7,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.agenda_kotlin.model.TipoOrdenamiento
+import com.example.agenda_kotlin.ui.SearchBar
 import com.example.agenda_kotlin.ui.ThemeOption
 import com.example.agenda_kotlin.viewmodel.TareaViewModel
 
@@ -150,13 +153,26 @@ fun AgendaScreen(
                     .padding(padding)
                     .background(MaterialTheme.colorScheme.background)
             ) {
+                // Campo de búsqueda
+                SearchBar(
+                    query = uiState.textoBusqueda,
+                    onQueryChange = { viewModel.cambiarTextoBusqueda(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+                
                 if (uiState.tareas.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "No hay tareas. ¡Agrega una nueva!",
+                            if (uiState.textoBusqueda.isNotEmpty()) {
+                                "No se encontraron tareas con \"${uiState.textoBusqueda}\""
+                            } else {
+                                "No hay tareas. ¡Agrega una nueva!"
+                            },
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color.Gray
                         )

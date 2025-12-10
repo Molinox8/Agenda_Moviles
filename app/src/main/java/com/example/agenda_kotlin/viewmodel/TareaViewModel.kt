@@ -16,7 +16,8 @@ data class TareaUiState(
     val tareas: List<Tarea> = emptyList(),
     val mostrarDialog: Boolean = false,
     val tareaEditando: Tarea? = null, // Tarea que se está editando
-    val tipoOrdenamiento: TipoOrdenamiento = TipoOrdenamiento.PRIORIDAD_ALTA_PRIMERO
+    val tipoOrdenamiento: TipoOrdenamiento = TipoOrdenamiento.PRIORIDAD_ALTA_PRIMERO,
+    val textoBusqueda: String = ""
 )
 
 class TareaViewModel(
@@ -26,25 +27,30 @@ class TareaViewModel(
     private val _tipoOrdenamiento = MutableStateFlow(TipoOrdenamiento.PRIORIDAD_ALTA_PRIMERO)
     private val _mostrarDialog = MutableStateFlow(false)
     private val _tareaEditando = MutableStateFlow<Tarea?>(null)
+    private val _textoBusqueda = MutableStateFlow("")
     
     val tareasFlow = combine(
         repository.obtenerTodasLasTareas(),
-        _tipoOrdenamiento
-    ) { tareas, ordenamiento ->
-        ordenarTareas(tareas, ordenamiento)
+        _tipoOrdenamiento,
+        _textoBusqueda
+    ) { tareas, ordenamiento, textoBusqueda ->
+        val tareasFiltradas = filtrarTareas(tareas, textoBusqueda)
+        ordenarTareas(tareasFiltradas, ordenamiento)
     }
     
     val uiState: StateFlow<TareaUiState> = combine(
         tareasFlow,
         _mostrarDialog,
         _tareaEditando,
-        _tipoOrdenamiento
-    ) { tareas, mostrarDialog, tareaEditando, tipoOrdenamiento ->
+        _tipoOrdenamiento,
+        _textoBusqueda
+    ) { tareas, mostrarDialog, tareaEditando, tipoOrdenamiento, textoBusqueda ->
         TareaUiState(
             tareas = tareas,
             mostrarDialog = mostrarDialog,
             tareaEditando = tareaEditando,
-            tipoOrdenamiento = tipoOrdenamiento
+            tipoOrdenamiento = tipoOrdenamiento,
+            textoBusqueda = textoBusqueda
         )
     }.stateIn(
         scope = viewModelScope,
@@ -54,6 +60,21 @@ class TareaViewModel(
     
     fun cambiarOrdenamiento(tipoOrdenamiento: TipoOrdenamiento) {
         _tipoOrdenamiento.value = tipoOrdenamiento
+    }
+    
+    fun cambiarTextoBusqueda(texto: String) {
+        _textoBusqueda.value = texto
+    }
+    
+    private fun filtrarTareas(tareas: List<Tarea>, textoBusqueda: String): List<Tarea> {
+        if (textoBusqueda.isBlank()) {
+            return tareas
+        }
+        val textoBusquedaLower = textoBusqueda.lowercase()
+        return tareas.filter { tarea ->
+            tarea.titulo.lowercase().contains(textoBusquedaLower) ||
+            tarea.descripcion.lowercase().contains(textoBusquedaLower)
+        }
     }
     
     private fun ordenarTareas(tareas: List<Tarea>, tipoOrdenamiento: TipoOrdenamiento): List<Tarea> {
